@@ -3179,6 +3179,17 @@ if test "${enable_android_surface}" = "yes"; then
   fi
 fi
 
+dnl
+dnl  android surface module
+dnl
+AC_ARG_ENABLE(android-ti-overlay,
+  [  --enable-android-ti-overlay   Android Surface video output module (default disabled)])
+if test "${enable_android_ti_overlay}" = "yes"; then
+  if test "${HAVE_ANDROID}" = "1"; then
+     VLC_ADD_PLUGIN([android_ti_overlay])
+     VLC_ADD_LDFLAGS([android_ti_overlay], [-ldl])
+  fi
+fi
 
 dnl
 dnl  iOS vout module
