@@ -49,6 +49,7 @@ public:
 
 extern "C" void* getISurface(android::Surface *surface);
 extern "C" void* createOverlay(android::Surface *surface, uint32_t w, uint32_t h, int32_t format, int32_t orientation);
+extern "C" void releaseOverlay();
 extern "C" void setDisplay(android::Surface *surface, int displayId);
 
 #endif /* SURFACEHELPER_H_ */

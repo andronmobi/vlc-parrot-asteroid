@@ -88,6 +88,7 @@ typedef struct {
 
 typedef ISurface* (*getISurface)(void *);
 typedef Overlay* (*createOverlay)(void *, uint32_t, uint32_t, int32_t, int32_t);
+typedef void (*releaseOverlay)();
 typedef void (*setDisplay)(void *, int);
 
 // _ZN7android7Overlay7destroyEv
@@ -120,6 +121,7 @@ struct vout_display_sys_t {
     void *p_libsurfacehelper;
     getISurface getISurface;
     createOverlay createOverlay;
+    releaseOverlay releaseOverlay;
     setDisplay setDisplay;
 
     // libui.so library and its overlay methods.
@@ -157,6 +159,7 @@ static inline void *LoadSurfaceHelper(const char *psz_lib, vout_display_sys_t *s
 
     sys->getISurface = (getISurface)(dlsym(p_library, "getISurface"));
     sys->createOverlay = (createOverlay)(dlsym(p_library, "createOverlay"));
+    sys->releaseOverlay = (releaseOverlay)(dlsym(p_library, "releaseOverlay"));
     sys->setDisplay = (setDisplay)(dlsym(p_library, "setDisplay"));
 
     if (sys->getISurface && sys->createOverlay && sys->setDisplay)
@@ -311,6 +314,7 @@ static void Close(vlc_object_t *p_this)
     vout_display_sys_t *sys = vd->sys;
 
     sys->o_destroy(sys->overlay);
+    sys->releaseOverlay();
     free(sys->buffer_ptrs);
     picture_pool_Delete(sys->pool); // free memory of the pool and its picture(s)
 

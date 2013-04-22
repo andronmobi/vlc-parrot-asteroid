@@ -51,6 +51,10 @@ extern "C" void* createOverlay(Surface *surface, uint32_t w, uint32_t h, int32_t
     return Test::mOverlay.get();
 }
 
+extern "C" void releaseOverlay() {
+    Test::mOverlay.clear();
+}
+
 extern "C" void setDisplay(Surface *surface, int displayId) {
     sp<ISurface> isurface = Test::getISurface(surface);
     isurface->setDisplayId(displayId);
