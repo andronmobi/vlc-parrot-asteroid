@@ -51,8 +51,6 @@
 
 #define CFG_PREFIX "androidtioverlay-"
 
-static vout_display_t *vout_device;
-
 static int  Open (vlc_object_t *);
 static void Close(vlc_object_t *);
 
@@ -189,17 +187,18 @@ static inline void *LoadOverlay(const char *psz_lib, vout_display_sys_t *sys)
     return NULL;
 }
 
-static int InitLibraries(vout_display_sys_t *sys)
+static int InitLibraries(vout_display_t *vd)
 {
+    vout_display_sys_t *sys = vd->sys;
     sys->p_libsurfacehelper = LoadSurfaceHelper("/data/data/org.videolan.vlc/lib/libsurfacehelper.so", sys);
     if (!sys->p_libsurfacehelper) {
-        msg_Err(vout_device, "libsurfacehelper.so library is not loaded");
+        msg_Err(vd, "libsurfacehelper.so library is not loaded");
         return VLC_EGENERIC;
     }
 
     sys->p_libui = LoadOverlay("libui.so", sys);
     if (!sys->p_libui) {
-        msg_Err(vout_device, "libui.so library is not loaded");
+        msg_Err(vd, "libui.so library is not loaded");
         return VLC_EGENERIC;
     }
 
@@ -251,7 +250,6 @@ static int OpenOverlay(vout_display_t *vd, video_format_t *fmt) {
 static int Open(vlc_object_t *p_this)
 {
     vout_display_t *vd = (vout_display_t *)p_this;
-    vout_device = vd;
 
     /* */
     if (vlc_mutex_trylock(&single_instance) != 0) {
@@ -267,7 +265,7 @@ static int Open(vlc_object_t *p_this)
     }
 
     /* */
-    if (InitLibraries(sys) != VLC_SUCCESS) {
+    if (InitLibraries(vd) != VLC_SUCCESS) {
         msg_Err(vd, "Could not initialize libui.so/libsurfacehelper.so!");
         if (sys->p_libsurfacehelper) dlclose(sys->p_libsurfacehelper);
         if (sys->p_libui) dlclose(sys->p_libui);
@@ -383,7 +381,7 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
 
     if (sys->buffer_count > 0 && sys->buffer_queued_count < sys->buffer_count) {
         vd->sys->o_queueBuffer(sys->overlay, sys->buffer_idx);
-        //msg_Dbg(vout_device, "queue buffer[%d]", sys->buffer_idx);
+        //msg_Dbg(vd, "queue buffer[%d]", sys->buffer_idx);
         sys->buffer_idx++;
         sys->buffer_queued_count++;
         if (sys->buffer_idx == sys->buffer_count)
@@ -395,7 +393,7 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         status_t status = vd->sys->o_dequeueBuffer(sys->overlay, &i);
         if (status == 0) {
             sys->buffer_queued_count--;
-            //msg_Dbg(vout_device, "dequeue buffer[%d]", i);
+            //msg_Dbg(vd, "dequeue buffer[%d]", i);
         }
     }
 
@@ -414,7 +412,7 @@ static int Control(vout_display_t *vd, int query, va_list args)
 {
     VLC_UNUSED(args);
 
-    msg_Dbg(vout_device, "Control androidtioverlay, query: %d", query);
+    msg_Dbg(vd, "Control androidtioverlay, query: %d", query);
 
     switch (query) {
     case VOUT_DISPLAY_HIDE_MOUSE:
