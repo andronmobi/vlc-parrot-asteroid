@@ -110,6 +110,9 @@ typedef struct {
         int den;
     } zoom;
 
+    /* TODO */
+    int screenId;
+
 } vout_display_cfg_t;
 
 /**
@@ -171,8 +174,14 @@ enum {
      * video_format_t::i_visible_width/height */
     VOUT_DISPLAY_CHANGE_SOURCE_CROP,   /* const video_format_t *p_source */
 
+    /* TODO */
+    VOUT_DISPLAY_CHANGE_SCREEN_ID,
+
     /* Ask an opengl interface if available. */
     VOUT_DISPLAY_GET_OPENGL,           /* vlc_gl_t ** */
+
+    /* TODO */
+    VOUT_DISPLAY_GET_SCREEN_ID,
 };
 
 /**

@@ -90,6 +90,7 @@ VLC_API void vout_SetDisplayZoom(vout_display_t *, int num, int den);
 VLC_API void vout_SetWindowState(vout_display_t *, unsigned state);
 VLC_API void vout_SetDisplayAspect(vout_display_t *, unsigned dar_num, unsigned dar_den);
 VLC_API void vout_SetDisplayCrop(vout_display_t *, unsigned crop_num, unsigned crop_den, unsigned left, unsigned top, int right, int bottom);
+VLC_API void vout_SetDisplayScreenId(vout_display_t *, int screenId);
 
 struct vlc_gl_t;
 VLC_API struct vlc_gl_t * vout_GetDisplayOpengl(vout_display_t *);

@@ -876,6 +876,11 @@ LIBVLC_API void libvlc_set_fullscreen( libvlc_media_player_t *p_mi, int b_fullsc
 LIBVLC_API int libvlc_get_fullscreen( libvlc_media_player_t *p_mi );
 
 /**
+ * TODO
+ */
+LIBVLC_API void libvlc_set_screen_id( libvlc_media_player_t *p_mi, int screen_id );
+
+/**
  * Enable or disable key press events handling, according to the LibVLC hotkeys
  * configuration. By default and for historical reasons, keyboard events are
  * handled by the LibVLC video widget.

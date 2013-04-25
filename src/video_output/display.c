@@ -1129,6 +1129,18 @@ void vout_SetDisplayFullscreen(vout_display_t *vd, bool is_fullscreen)
     vlc_mutex_unlock(&osys->lock);
 }
 
+void vout_SetDisplayScreenId(vout_display_t *vd, int screenId)
+{
+    vout_display_owner_sys_t *osys = vd->owner.sys;
+    vout_display_cfg_t cfg = osys->cfg;
+    cfg.screenId = screenId;
+    cfg.is_display_filled = osys->is_display_filled;
+    if (vout_display_Control(vd, VOUT_DISPLAY_CHANGE_SCREEN_ID, &cfg)) {
+        msg_Err(vd, "Failed to change screen id");
+        osys->is_display_filled = osys->cfg.is_display_filled;
+    }
+}
+
 void vout_SetDisplayFilled(vout_display_t *vd, bool is_filled)
 {
     vout_display_owner_sys_t *osys = vd->owner.sys;

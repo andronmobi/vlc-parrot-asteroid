@@ -104,6 +104,19 @@ void libvlc_set_fullscreen( libvlc_media_player_t *p_mi, int b_fullscreen )
     free (pp_vouts);
 }
 
+void libvlc_set_screen_id( libvlc_media_player_t *p_mi, int screen_id )
+{
+    /* Apply to current video outputs (if any) */
+    size_t n;
+    vout_thread_t **pp_vouts = GetVouts (p_mi, &n);
+    for (size_t i = 0; i < n; i++)
+    {
+        var_SetInteger (pp_vouts[i], "screen-id", screen_id);
+        vlc_object_release (pp_vouts[i]);
+    }
+    free (pp_vouts);
+}
+
 int libvlc_get_fullscreen( libvlc_media_player_t *p_mi )
 {
     return var_GetBool (p_mi, "fullscreen");

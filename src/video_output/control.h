@@ -42,6 +42,7 @@ enum {
     VOUT_CONTROL_CHANGE_SUB_SOURCES,    /* string */
     VOUT_CONTROL_CHANGE_SUB_FILTERS,    /* string */
     VOUT_CONTROL_CHANGE_SUB_MARGIN,     /* integer */
+    VOUT_CONTROL_CHANGE_SCREEN_ID,      /* integer */
 
     VOUT_CONTROL_PAUSE,
     VOUT_CONTROL_RESET,

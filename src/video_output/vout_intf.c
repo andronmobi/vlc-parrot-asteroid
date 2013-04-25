@@ -71,6 +71,8 @@ static int SubFilterCallback( vlc_object_t *, char const *,
                               vlc_value_t, vlc_value_t, void * );
 static int SubMarginCallback( vlc_object_t *, char const *,
                               vlc_value_t, vlc_value_t, void * );
+static int ScreenIdCallback( vlc_object_t *p_this, char const *psz_cmd,
+                       vlc_value_t oldval, vlc_value_t newval, void *p_data );
 
 /*****************************************************************************
  * vout_IntfInit: called during the vout creation to initialise misc things.
@@ -330,6 +332,13 @@ void vout_IntfInit( vout_thread_t *p_vout )
     var_Create( p_vout, "mouse-moved", VLC_VAR_COORDS );
     var_Create( p_vout, "mouse-clicked", VLC_VAR_COORDS );
     var_Create( p_vout, "mouse-object", VLC_VAR_BOOL );
+
+    /* Add a screen id variable */
+    var_Create( p_vout, "screen-id",
+            VLC_VAR_INTEGER | VLC_VAR_DOINHERIT | VLC_VAR_ISCOMMAND );
+    text.psz_string = _("Screen-id");
+    var_Change( p_vout, "screen-id", VLC_VAR_SETTEXT, &text, NULL );
+    var_AddCallback( p_vout, "screen-id", ScreenIdCallback, NULL );
 }
 
 /*****************************************************************************
@@ -681,6 +690,17 @@ static int SubMarginCallback( vlc_object_t *p_this, char const *psz_cmd,
     VLC_UNUSED(psz_cmd); VLC_UNUSED(oldval); VLC_UNUSED(p_data);
 
     vout_ControlChangeSubMargin( p_vout, newval.i_int );
+    return VLC_SUCCESS;
+}
+
+static int ScreenIdCallback( vlc_object_t *p_this, char const *psz_cmd,
+                       vlc_value_t oldval, vlc_value_t newval, void *p_data )
+{
+    vout_thread_t *p_vout = (vout_thread_t *)p_this;
+    (void)psz_cmd; (void)p_data;
+
+    if( oldval.b_bool != newval.b_bool )
+        vout_ControlChangeScreenId( p_vout, newval.b_bool );
     return VLC_SUCCESS;
 }
 

@@ -28,9 +28,9 @@
 #include <vlc_plugin.h>
 #include <vlc_vout_display.h>
 #include <vlc_picture_pool.h>
+#include <vlc_vout_display.h>
 
 #include <dlfcn.h>
-
 
 #ifndef ANDROID_SYM_S_CREATE_OVR
 # define ANDROID_SYM_S_CREATE_OVR "_ZN7android7Surface7isValidEv"
@@ -237,8 +237,8 @@ static int OpenOverlay(vout_display_t *vd, video_format_t *fmt) {
     }
 
     //////////////////////////////////////////////////////////////
-    sys->setDisplay(surf, 2);
-    msg_Info(vd, "Set display is done");
+    sys->setDisplay(surf, 0);
+    msg_Info(vd, "Set display_0 is done");
     //////////////////////////////////////////////////////////////
 
     msg_Dbg(vd, "Open surface is OK");
@@ -263,6 +263,7 @@ static int Open(vlc_object_t *p_this)
         vlc_mutex_unlock(&single_instance);
         return VLC_ENOMEM;
     }
+    vd->sys = sys;
 
     /* */
     if (InitLibraries(vd) != VLC_SUCCESS) {
@@ -280,7 +281,6 @@ static int Open(vlc_object_t *p_this)
     msg_Dbg(vd, "Pixel format %4.4s", (char*)&fmt.i_chroma);
 
     /* Setup vout_display */
-    vd->sys     = sys;
     vd->fmt     = fmt;
     vd->pool    = Pool;
     vd->display = Display;
@@ -379,9 +379,11 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
 
     vout_display_sys_t *sys = vd->sys;
 
+    msg_Dbg(vd, "Display buffer[%d]", sys->buffer_idx);
+
     if (sys->buffer_count > 0 && sys->buffer_queued_count < sys->buffer_count) {
         vd->sys->o_queueBuffer(sys->overlay, sys->buffer_idx);
-        //msg_Dbg(vd, "queue buffer[%d]", sys->buffer_idx);
+        msg_Dbg(vd, "queue buffer[%d]", sys->buffer_idx);
         sys->buffer_idx++;
         sys->buffer_queued_count++;
         if (sys->buffer_idx == sys->buffer_count)
@@ -393,7 +395,7 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         status_t status = vd->sys->o_dequeueBuffer(sys->overlay, &i);
         if (status == 0) {
             sys->buffer_queued_count--;
-            //msg_Dbg(vd, "dequeue buffer[%d]", i);
+            msg_Dbg(vd, "dequeue buffer[%d]", i);
         }
     }
 
@@ -421,6 +423,16 @@ static int Control(vout_display_t *vd, int query, va_list args)
     default:
         msg_Err(vd, "Unknown request in android vout display");
 
+    case VOUT_DISPLAY_CHANGE_SCREEN_ID: {
+        const vout_display_cfg_t *display_cfg = va_arg(args, const vout_display_cfg_t *);
+        int screenId = display_cfg->screenId;
+
+        msg_Dbg(vd, "Change screen id request is received, screenId=%d", screenId);
+        void* surf = jni_LockAndGetAndroidSurface();
+        vd->sys->setDisplay(surf, screenId);
+        jni_UnlockAndroidSurface();
+        return VLC_SUCCESS;
+    }
     case VOUT_DISPLAY_CHANGE_FULLSCREEN:
     case VOUT_DISPLAY_CHANGE_WINDOW_STATE:
     case VOUT_DISPLAY_CHANGE_DISPLAY_SIZE:

@@ -151,6 +151,7 @@ void vout_ControlChangeFilters(vout_thread_t *, const char *);
 void vout_ControlChangeSubSources(vout_thread_t *, const char *);
 void vout_ControlChangeSubFilters(vout_thread_t *, const char *);
 void vout_ControlChangeSubMargin(vout_thread_t *, int);
+void vout_ControlChangeScreenId(vout_thread_t *, int);
 
 /* */
 void vout_IntfInit( vout_thread_t * );

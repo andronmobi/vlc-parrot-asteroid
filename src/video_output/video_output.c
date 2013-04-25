@@ -563,6 +563,11 @@ void vout_ControlChangeSubMargin(vout_thread_t *vout, int margin)
     vout_control_PushInteger(&vout->p->control, VOUT_CONTROL_CHANGE_SUB_MARGIN,
                              margin);
 }
+void vout_ControlChangeScreenId(vout_thread_t *vout, int screenId)
+{
+    vout_control_PushInteger(&vout->p->control, VOUT_CONTROL_CHANGE_SCREEN_ID,
+                          screenId);
+}
 
 /* */
 static void VoutGetDisplayCfg(vout_thread_t *vout, vout_display_cfg_t *cfg, const char *title)
@@ -599,6 +604,7 @@ static void VoutGetDisplayCfg(vout_thread_t *vout, vout_display_cfg_t *cfg, cons
         cfg->align.vertical = VOUT_DISPLAY_ALIGN_TOP;
     else if (align_mask & 0x8)
         cfg->align.vertical = VOUT_DISPLAY_ALIGN_BOTTOM;
+    cfg->screenId = var_CreateGetInteger(vout, "screen-id");
 }
 
 vout_window_t * vout_NewDisplayWindow(vout_thread_t *vout, vout_display_t *vd,
@@ -1182,6 +1188,11 @@ static void ThreadChangeSubMargin(vout_thread_t *vout, int margin)
     spu_ChangeMargin(vout->p->spu, margin);
 }
 
+static void ThreadChangeScreenId(vout_thread_t *vout, int screenId)
+{
+    vout_SetDisplayScreenId(vout->p->display.vd, screenId);
+}
+
 static void ThreadChangePause(vout_thread_t *vout, bool is_paused, mtime_t date)
 {
     assert(!vout->p->pause.is_on || !is_paused);
@@ -1518,6 +1529,9 @@ static void *Thread(void *object)
                 break;
             case VOUT_CONTROL_CHANGE_SUB_MARGIN:
                 ThreadChangeSubMargin(vout, cmd.u.integer);
+                break;
+            case VOUT_CONTROL_CHANGE_SCREEN_ID:
+                ThreadChangeScreenId(vout, cmd.u.integer);
                 break;
             case VOUT_CONTROL_PAUSE:
                 ThreadChangePause(vout, cmd.u.pause.is_on, cmd.u.pause.date);
