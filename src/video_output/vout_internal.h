@@ -155,6 +155,7 @@ void vout_ControlChangeScreenId(vout_thread_t *, int);
 
 /* */
 void vout_IntfInit( vout_thread_t * );
+void vout_IntfReinit( vout_thread_t * );
 
 /* */
 int  vout_OpenWrapper (vout_thread_t *, const char *, const vout_display_state_t *);
