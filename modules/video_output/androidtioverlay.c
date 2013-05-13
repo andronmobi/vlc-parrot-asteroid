@@ -111,6 +111,8 @@ static int              Control(vout_display_t *, int, va_list);
 static int  LockPicture(picture_t *);
 static void UnlockPicture(picture_t *);
 
+#define NUM_BUFFERS_TO_BE_QUEUED_FOR_OPTIMAL_PERFORMANCE 3
+
 /* */
 struct vout_display_sys_t {
     picture_pool_t *pool;
@@ -382,21 +384,32 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
     msg_Dbg(vd, "Display buffer[%d]", sys->buffer_idx);
 
     if (sys->buffer_count > 0 && sys->buffer_queued_count < sys->buffer_count) {
-        vd->sys->o_queueBuffer(sys->overlay, sys->buffer_idx);
-        msg_Dbg(vd, "queue buffer[%d]", sys->buffer_idx);
-        sys->buffer_idx++;
-        sys->buffer_queued_count++;
-        if (sys->buffer_idx == sys->buffer_count)
-            sys->buffer_idx = 0;
+        int nBuffers_queued_to_dss = vd->sys->o_queueBuffer(sys->overlay, sys->buffer_idx);
+        if (nBuffers_queued_to_dss < 0) {
+            msg_Err(vd, "Failed queue buffer#%d to overlay!", sys->buffer_idx);
+        } else {
+            sys->buffer_queued_count++;
+            if (nBuffers_queued_to_dss != sys->buffer_queued_count) {
+                msg_Warn(vd, "Found some buffers discarded by DSS upon STREAM OFF!");
+                sys->buffer_queued_count = 1; // discard previously queued buffers.
+            }
+            sys->buffer_idx++;
+            if (sys->buffer_idx == sys->buffer_count)
+                sys->buffer_idx = 0;
+        }
     }
 
-    if (sys->buffer_queued_count) {
+    if (sys->buffer_queued_count >= NUM_BUFFERS_TO_BE_QUEUED_FOR_OPTIMAL_PERFORMANCE) {
         int i;
         status_t status = vd->sys->o_dequeueBuffer(sys->overlay, &i);
         if (status == 0) {
             sys->buffer_queued_count--;
-            msg_Dbg(vd, "dequeue buffer[%d]", i);
+            //msg_Dbg(vd, "dequeue buffer[%d]", i);
+        } else {
+            msg_Err(vd, "no buffer to dequeue in overlay");
         }
+    } else {
+        //msg_Dbg(vd, "skip dequeue buffer, there are not enough queued buffers");
     }
 
     /* we don't free memory of the picture in this method
