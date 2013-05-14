@@ -381,8 +381,6 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
 
     vout_display_sys_t *sys = vd->sys;
 
-    msg_Dbg(vd, "Display buffer[%d]", sys->buffer_idx);
-
     if (sys->buffer_count > 0 && sys->buffer_queued_count < sys->buffer_count) {
         int nBuffers_queued_to_dss = vd->sys->o_queueBuffer(sys->overlay, sys->buffer_idx);
         if (nBuffers_queued_to_dss < 0) {

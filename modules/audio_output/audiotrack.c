@@ -35,6 +35,7 @@
 
 /* From AudioSystem.h */
 #define MUSIC 3
+#define EXT_MUSIC 10 /* Parrot external music stream type */
 
 enum pcm_sub_format {
     PCM_SUB_16_BIT          = 0x1, // must be 1 for backward compatibility
@@ -104,6 +105,9 @@ struct aout_sys_t {
     void *libmedia;
     void *AudioTrack;
 
+    audio_sample_format_t *fmt;
+    int streamType;
+
     AudioSystem_getOutputFrameCount as_getOutputFrameCount;
     AudioSystem_getOutputLatency as_getOutputLatency;
     AudioSystem_getOutputSamplingRate as_getOutputSamplingRate;
@@ -132,6 +136,9 @@ static void Play(audio_output_t*, block_t*);
 static void Pause (audio_output_t *, bool, mtime_t);
 static void Flush (audio_output_t *, bool);
 
+static int Start(audio_output_t *aout, audio_sample_format_t *restrict fmt);
+static void Stop(audio_output_t* p_aout);
+
 vlc_module_begin ()
     set_shortname("AudioTrack")
     set_description(N_("Android AudioTrack audio output"))
@@ -142,6 +149,19 @@ vlc_module_begin ()
     add_shortcut("android")
     set_callbacks(Open, Close)
 vlc_module_end ()
+
+static int StreamSelect (audio_output_t *aout, const char *id)
+{
+    aout_sys_t *sys = aout->sys;
+
+    msg_Dbg(aout, "StreamSelect id = %s", id);
+    if (sys->fmt != NULL) {
+        sys->streamType = strcmp("music", id) == 0 ? MUSIC : EXT_MUSIC;
+        Stop(aout);             // destroy previous audio track
+        Start(aout, sys->fmt);  // start a new one with the specific stream type
+    }
+    return 0;
+}
 
 static void *InitLibrary(struct aout_sys_t *p_sys)
 {
@@ -231,6 +251,8 @@ static int Start(audio_output_t *aout, audio_sample_format_t *restrict fmt)
     int afSampleRate, afFrameCount, afLatency, minBufCount, minFrameCount;
     int stream_type, channel, rate, format;
 
+    p_sys->fmt = fmt;
+
     /* 4000 <= frequency <= 48000 */
     rate = fmt->i_rate;
     if (rate < 4000)
@@ -238,7 +260,7 @@ static int Start(audio_output_t *aout, audio_sample_format_t *restrict fmt)
     if (rate > 48000)
         rate = 48000;
 
-    stream_type = MUSIC;
+    stream_type = p_sys->streamType;
 
     /* We can only accept U8 and S16N */
     if (fmt->i_format != VLC_CODEC_U8 && fmt->i_format != VLC_CODEC_S16N)
@@ -322,6 +344,7 @@ static int Start(audio_output_t *aout, audio_sample_format_t *restrict fmt)
     aout->pause = Pause;
     aout->flush = Flush;
     aout->time_get = TimeGet;
+    aout->device_select = StreamSelect;
 
     p_sys->rate = rate;
     p_sys->samples_written = 0;
@@ -406,6 +429,9 @@ static int Open(vlc_object_t *obj)
         free(sys);
         return VLC_EGENERIC;
     }
+
+    sys->fmt = NULL;
+    sys->streamType = MUSIC;
 
     aout->sys = sys;
     aout->start = Start;

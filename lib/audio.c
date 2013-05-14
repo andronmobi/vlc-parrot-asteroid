@@ -229,6 +229,18 @@ void libvlc_audio_output_set_device_type( libvlc_media_player_t *mp,
     (void) mp; (void) device_type;
 }
 
+int libvlc_audio_set_device( libvlc_media_player_t *mp, const char *id )
+{
+    int ret = -1;
+    audio_output_t *aout = GetAOut( mp );
+    if( aout != NULL )
+    {
+        ret = aout_DeviceSet( aout, id );
+        vlc_object_release( aout );
+    }
+    return ret;
+}
+
 void libvlc_audio_toggle_mute( libvlc_media_player_t *mp )
 {
     int mute = libvlc_audio_get_mute( mp );
