@@ -23,8 +23,11 @@
 
 #include "SurfaceHelper.h"
 #include <surfaceflinger/ISurface.h>
+#include <sys/resource.h>
 
 using namespace android;
+
+#define PRIO_PROCESS 0
 
 sp<Overlay> Test::mOverlay;
 
@@ -56,6 +59,9 @@ extern "C" void releaseOverlay() {
 }
 
 extern "C" void setDisplay(Surface *surface, int displayId) {
+    if (displayId == 2) {
+        setpriority(PRIO_PROCESS, 0, ANDROID_PRIORITY_URGENT_AUDIO);
+    }
     sp<ISurface> isurface = Test::getISurface(surface);
     isurface->setDisplayId(displayId);
 }

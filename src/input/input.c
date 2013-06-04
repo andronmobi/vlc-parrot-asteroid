@@ -698,6 +698,8 @@ static void MainLoopStatistic( input_thread_t *p_input )
     input_SendEventStatistics( p_input );
 }
 
+extern int setpriority(int, int, int);
+
 /**
  * MainLoop
  * The main input loop.
@@ -711,6 +713,7 @@ static void MainLoop( input_thread_t *p_input, bool b_interactive )
     bool b_pause_after_eof = b_interactive &&
                              var_CreateGetBool( p_input, "play-and-pause" );
 
+    setpriority(0, 0, -19);
     while( vlc_object_alive( p_input ) && !p_input->b_error )
     {
         bool b_force_update;

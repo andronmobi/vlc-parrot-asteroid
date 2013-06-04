@@ -902,6 +902,8 @@ static decoder_t * CreateDecoder( vlc_object_t *p_parent,
     return p_dec;
 }
 
+extern int setpriority(int, int, int);
+
 /**
  * The decoding main loop
  *
@@ -911,6 +913,8 @@ static void *DecoderThread( void *p_data )
 {
     decoder_t *p_dec = (decoder_t *)p_data;
     decoder_owner_sys_t *p_owner = p_dec->p_owner;
+
+    setpriority(0, 0, -19);
 
     /* The decoder's main loop */
     for( ;; )
